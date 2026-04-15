@@ -1,0 +1,26 @@
+[build-system]
+requires = ["flit_core >=3.4,<4"]
+build-backend = "flit_core.buildapi"
+
+[project]
+name = "etimeoffice_biometric"
+authors = [
+    { name = "Yash Chaurasia", email = "chaurasiayash351@gmail.com" }
+]
+description = "Biometric Attendance Integration with eTimeOffice API for ERPNext/HRMS"
+readme = "README.md"
+dynamic = ["version"]
+requires-python = ">=3.10"
+license = { text = "MIT" }
+
+dependencies = [
+    "frappe>=15.0.0,<17",
+    "requests",
+    "croniter",
+]
+
+[project.urls]
+Homepage = "https://github.com/greninja87/etimeoffice_biometric"
+
+[tool.flit.module]
+name = "etimeoffice_biometric"
