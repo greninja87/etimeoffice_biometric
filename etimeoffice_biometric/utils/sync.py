@@ -181,6 +181,27 @@ def _process_punches(punch_list):
             doc.time      = ci["time"]
             doc.log_type  = ci["log_type"]
             doc.device_id = ci["device_id"]
+
+            # ── Geolocation handling ──────────────────────────────────────────
+            # If HR Settings has geolocation tracking enabled, latitude and
+            # longitude become mandatory on Employee Checkin. Since biometric
+            # devices don't provide GPS coordinates we set neutral defaults
+            # (0.0, 0.0) so the record saves without error. The device_id field
+            # already identifies the physical machine location.
+            try:
+                geo_enabled = frappe.db.get_single_value(
+                    "HR Settings", "allow_geolocation_tracking"
+                )
+                if geo_enabled:
+                    doc.latitude  = doc.latitude  or 0.0
+                    doc.longitude = doc.longitude or 0.0
+                    doc.accuracy  = doc.accuracy  or 0.0
+            except Exception:
+                pass  # HR Settings field may not exist in older versions
+
+            # ignore_mandatory ensures insert succeeds even if future ERPNext
+            # versions add new mandatory fields to Employee Checkin
+            doc.flags.ignore_mandatory = True
             doc.insert(ignore_permissions=True)
             created += 1
 
