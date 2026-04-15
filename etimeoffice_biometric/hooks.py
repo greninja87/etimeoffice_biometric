@@ -5,6 +5,7 @@ app_description = "Biometric Attendance Integration with eTimeOffice API for ERP
 app_email = "chaurasiayash351@gmail.com"
 app_license = "MIT"
 app_version = "1.0.0"
+app_logo_url = "/assets/etimeoffice_biometric/images/app_icon.png"
 
 # ─── Includes ────────────────────────────────────────────────────────────────
 # app_include_css = "/assets/etimeoffice_biometric/css/etimeoffice_biometric.css"
