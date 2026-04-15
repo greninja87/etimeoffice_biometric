@@ -163,15 +163,19 @@ def _process_punches(punch_list):
             })
 
         for ci in checkins:
-            # Duplicate check — same employee + same timestamp + same log_type
-            already_exists = frappe.db.exists(
-                "Employee Checkin",
-                {
-                    "employee": ci["employee"],
-                    "time":     ci["time"],
-                    "log_type": ci["log_type"],
-                },
-            )
+            # ── Duplicate check using direct SQL (reliable datetime match) ────
+            # frappe.db.exists can miss duplicates due to datetime precision
+            # differences. Direct SQL with DATE_FORMAT truncated to the second
+            # is the most reliable approach.
+            time_str = ci["time"].strftime("%Y-%m-%d %H:%M:%S")
+            already_exists = frappe.db.sql("""
+                SELECT name FROM `tabEmployee Checkin`
+                WHERE employee = %s
+                  AND DATE_FORMAT(time, '%%Y-%%m-%%d %%H:%%i:%%s') = %s
+                  AND log_type = %s
+                LIMIT 1
+            """, (ci["employee"], time_str, ci["log_type"]))
+
             if already_exists:
                 skipped += 1
                 continue
@@ -183,25 +187,13 @@ def _process_punches(punch_list):
             doc.device_id = ci["device_id"]
 
             # ── Geolocation handling ──────────────────────────────────────────
-            # If HR Settings has geolocation tracking enabled, latitude and
-            # longitude become mandatory on Employee Checkin. Since biometric
-            # devices don't provide GPS coordinates we set neutral defaults
-            # (0.0, 0.0) so the record saves without error. The device_id field
-            # already identifies the physical machine location.
-            try:
-                geo_enabled = frappe.db.get_single_value(
-                    "HR Settings", "allow_geolocation_tracking"
-                )
-                if geo_enabled:
-                    doc.latitude  = doc.latitude  or 0.0
-                    doc.longitude = doc.longitude or 0.0
-                    doc.accuracy  = doc.accuracy  or 0.0
-            except Exception:
-                pass  # HR Settings field may not exist in older versions
-
-            # ignore_mandatory ensures insert succeeds even if future ERPNext
-            # versions add new mandatory fields to Employee Checkin
+            # When HR Settings has geolocation tracking enabled, ERPNext's
+            # Employee Checkin validate() throws if latitude/longitude are
+            # missing. Biometric devices don't provide GPS coordinates, so we
+            # bypass the validate() method entirely. The device_id field already
+            # identifies the physical machine location for audit purposes.
             doc.flags.ignore_mandatory = True
+            doc.flags.ignore_validate  = True
             doc.insert(ignore_permissions=True)
             created += 1
 
