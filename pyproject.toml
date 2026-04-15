@@ -25,5 +25,5 @@ Homepage = "https://github.com/greninja87/etimeoffice_biometric"
 [tool.flit.module]
 name = "etimeoffice_biometric"
 
-[tool.frappe]
-frappe-version = ">=15.0.0 <17.0.0"
+[tool.bench.frappe-dependencies]
+frappe = ">=15.0.0,<17.0.0"
