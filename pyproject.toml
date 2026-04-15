@@ -14,7 +14,7 @@ requires-python = ">=3.10"
 license = { text = "MIT" }
 
 dependencies = [
-    "frappe>=15.0.0,<17",
+    "frappe>=15.0.0 <17.0.0",
     "requests",
     "croniter",
 ]

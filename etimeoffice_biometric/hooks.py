@@ -6,6 +6,7 @@ app_email = "chaurasiayash351@gmail.com"
 app_license = "MIT"
 app_version = "1.0.0"
 app_logo_url = "/assets/etimeoffice_biometric/images/app_icon.png"
+frappe_version = ">=15.0.0 <17.0.0"
 
 # ─── Includes ────────────────────────────────────────────────────────────────
 # app_include_css = "/assets/etimeoffice_biometric/css/etimeoffice_biometric.css"
