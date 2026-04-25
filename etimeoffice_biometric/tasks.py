@@ -47,11 +47,7 @@ def run_scheduled_sync():
 
         # Update last sync time only on success/partial
         if log.status in ("Success", "Partial"):
-            frappe.db.set_value(
-                "Biometric Settings", None, "last_sync_time", now,
-                update_modified=False
-            )
-            frappe.db.commit()
+            frappe.db.set_single_value("Biometric Settings", "last_sync_time", now)
 
         frappe.logger("biometric").info(
             f"[Biometric] Scheduled sync done — status: {log.status}, "
@@ -78,7 +74,6 @@ def daily_cleanup():
         for name in old_logs:
             frappe.delete_doc("Biometric Sync Log", name, ignore_permissions=True)
         if old_logs:
-            frappe.db.commit()
             frappe.logger("biometric").info(
                 f"[Biometric] Cleaned up {len(old_logs)} old sync logs."
             )

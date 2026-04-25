@@ -84,7 +84,6 @@ def fetch_and_sync(emp_code="ALL", from_date=None, to_date=None):
     finally:
         log.flags.ignore_permissions = True
         log.insert(ignore_permissions=True)
-        frappe.db.commit()
 
     return log
 
@@ -127,6 +126,10 @@ def _process_punches(punch_list):
     skipped   = 0
     not_found = 0
 
+    # Track keys inserted during this batch to prevent intra-batch duplicates
+    # when the same punch appears multiple times in the API response.
+    inserted_this_batch: set = set()
+
     for (empcode, _date), punches in groups.items():
 
         # Validate employee exists (Empcode == ERPNext Employee ID)
@@ -163,11 +166,19 @@ def _process_punches(punch_list):
             })
 
         for ci in checkins:
+            time_str = ci["time"].strftime("%Y-%m-%d %H:%M:%S")
+            batch_key = (ci["employee"], time_str, ci["log_type"])
+
+            # Skip if already inserted in this batch run
+            if batch_key in inserted_this_batch:
+                skipped += 1
+                continue
+
             # ── Duplicate check using direct SQL (reliable datetime match) ────
             # frappe.db.exists can miss duplicates due to datetime precision
             # differences. Direct SQL with DATE_FORMAT truncated to the second
-            # is the most reliable approach.
-            time_str = ci["time"].strftime("%Y-%m-%d %H:%M:%S")
+            # is the most reliable approach and prevents duplicates across
+            # separate fetch runs (manual or scheduled).
             already_exists = frappe.db.sql("""
                 SELECT name FROM `tabEmployee Checkin`
                 WHERE employee = %s
@@ -195,9 +206,9 @@ def _process_punches(punch_list):
             doc.flags.ignore_mandatory = True
             doc.flags.ignore_validate  = True
             doc.insert(ignore_permissions=True)
+            inserted_this_batch.add(batch_key)
             created += 1
 
-    frappe.db.commit()
     return created, skipped, not_found
 
 

@@ -63,7 +63,6 @@ def save_settings(
         s.password = password  # stored encrypted by Frappe
 
     s.save(ignore_permissions=True)
-    frappe.db.commit()
     return {"success": True, "message": "Settings saved successfully."}
 
 

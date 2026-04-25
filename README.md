@@ -20,22 +20,6 @@ Fetch biometric punch data from the **eTimeOffice API** and automatically create
 - ERPNext with HRMS module enabled
 - Active eTimeOffice account with API credentials
 
-## Installation
-
-### From Frappe Cloud Marketplace
-
-Search for **Etimeoffice Biometric** on [Frappe Cloud Marketplace](https://cloud.frappe.io/marketplace) and click Install.
-
-### Manual Installation (bench)
-
-```bash
-cd /home/frappe/frappe-bench
-bench get-app https://github.com/greninja87/etimeoffice_biometric
-bench --site your-site.local install-app etimeoffice_biometric
-bench --site your-site.local migrate
-bench restart
-```
-
 ## Usage
 
 1. Go to **Biometric Settings** → enter your eTimeOffice API credentials → click **Test Connection**
