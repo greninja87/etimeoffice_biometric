@@ -231,7 +231,7 @@ def _ensure_datetime(val):
     if isinstance(val, datetime.date):
         return datetime.datetime.combine(val, datetime.time.min)
     if isinstance(val, str):
-        for fmt in ("%Y-%m-%d %H:%M:%S", "%Y-%m-%d %H:%M", "%Y-%m-%d"):
+        for fmt in ("%Y-%m-%d %H:%M:%S.%f", "%Y-%m-%d %H:%M:%S", "%Y-%m-%d %H:%M", "%Y-%m-%d"):
             try:
                 return datetime.datetime.strptime(val, fmt)
             except ValueError:
