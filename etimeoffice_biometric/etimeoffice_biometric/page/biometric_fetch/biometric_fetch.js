@@ -14,7 +14,7 @@ frappe.pages["biometric-fetch"].on_page_load = function (wrapper) {
     // ── Toolbar actions ──────────────────────────────────────────────────────
     page.set_primary_action(__("Fetch & Sync"), () => app.runFetch(), "refresh");
 
-    page.add_inner_button(__("Biometric Settings"), () => {
+    page.add_inner_button(__("⚙ Scheduler Settings"), () => {
         frappe.set_route("Form", "Biometric Settings");
     });
 
@@ -56,11 +56,6 @@ frappe.pages["biometric-fetch"].on_page_load = function (wrapper) {
                 <li class="nav-item">
                     <a class="nav-link active" data-tab="manual" href="#" style="font-size: 13px;">
                         Manual Fetch
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" data-tab="scheduler" href="#" style="font-size: 13px;">
-                        Scheduler
                     </a>
                 </li>
                 <li class="nav-item">
@@ -123,88 +118,7 @@ frappe.pages["biometric-fetch"].on_page_load = function (wrapper) {
                 </div>
             </div>
 
-            <!-- ═══ SCHEDULER TAB ════════════════════════════════════════ -->
-            <div id="tab-scheduler" class="bio-tab-panel hidden">
-                <div class="frappe-card" style="padding: 20px 24px;">
-                    <div style="font-size: 14px; font-weight: 600; margin-bottom: 4px;
-                                color: var(--text-color, #1c2126);">
-                        Automatic Fetch Schedule
-                    </div>
-                    <div class="text-muted" style="font-size: 12px; margin-bottom: 20px;">
-                        Configure when ERPNext automatically pulls biometric data.
-                        Changes take effect immediately without a server restart.
-                    </div>
 
-                    <!-- Enable toggle -->
-                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px;
-                                padding: 12px 14px; border-radius: 6px;
-                                background: var(--bg-color, #f8f9fa);
-                                border: 1px solid var(--border-color, #d1d8dd);">
-                        <input type="checkbox" id="sched-enabled"
-                               style="width:16px; height:16px; cursor:pointer; accent-color: var(--primary, #2490ef);" />
-                        <label for="sched-enabled" style="margin:0; cursor:pointer; font-size:13px; font-weight:500;">
-                            Enable automatic fetch
-                        </label>
-                        <span id="sched-status-tag" style="margin-left: auto; font-size: 11px;
-                              font-weight: 600; padding: 2px 10px; border-radius: 12px;
-                              background: #fde8e8; color: #842029; border: 1px solid #f5c2c7;">
-                            Disabled
-                        </span>
-                    </div>
-
-                    <div id="sched-options" class="row" style="transition: opacity 0.2s;">
-                        <div class="col-sm-4">
-                            <div class="form-group">
-                                <label class="control-label" style="font-size: 12px;">
-                                    Fetch Schedule
-                                </label>
-                                <select id="sched-schedule" class="form-control form-control-sm">
-                                    <option>Every Hour</option>
-                                    <option>Every 2 Hours</option>
-                                    <option>Every 4 Hours</option>
-                                    <option>Every 6 Hours</option>
-                                    <option>Every 12 Hours</option>
-                                    <option>Daily</option>
-                                    <option>Custom</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-sm-4" id="sched-cron-field" style="display:none;">
-                            <div class="form-group">
-                                <label class="control-label" style="font-size: 12px;">
-                                    Custom Cron Expression
-                                </label>
-                                <input type="text" id="sched-custom-cron"
-                                       class="form-control form-control-sm"
-                                       placeholder="e.g. 0 */4 * * *" />
-                                <p class="help-box small text-muted" style="margin-top: 4px;">
-                                    e.g. <code>0 */4 * * *</code> = every 4 hours
-                                </p>
-                            </div>
-                        </div>
-                        <div class="col-sm-4">
-                            <div class="form-group">
-                                <label class="control-label" style="font-size: 12px;">
-                                    Lookback Days (first run only)
-                                </label>
-                                <input type="number" id="sched-days-back"
-                                       class="form-control form-control-sm"
-                                       min="1" max="365" value="1" />
-                                <p class="help-box small text-muted" style="margin-top: 4px;">
-                                    Days of history to pull on the very first sync
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div style="margin-top: 8px; padding-top: 16px;
-                                border-top: 1px solid var(--border-color, #d1d8dd);">
-                        <button class="btn btn-primary btn-sm" id="sched-save-btn">
-                            Save Schedule
-                        </button>
-                    </div>
-                </div>
-            </div>
 
             <!-- ═══ SYNC LOGS TAB ════════════════════════════════════════ -->
             <div id="tab-logs" class="bio-tab-panel hidden">
@@ -289,9 +203,6 @@ class BiometricFetchPage {
     _setupEvents() {
         this.page.btn_primary.on("click",  () => this.runFetch());
         $("#bio-preview-btn").on("click",  () => this._loadCheckins());
-        $("#sched-enabled").on("change",   () => this._toggleSchedulerUI());
-        $("#sched-schedule").on("change",  () => this._toggleCronField());
-        $("#sched-save-btn").on("click",   () => this._saveScheduler());
         $("#logs-refresh-btn").on("click", () => this._loadLogs());
     }
 
@@ -328,66 +239,6 @@ class BiometricFetchPage {
                     $("#bio-schedule-val").text(
                         s.auto_fetch_enabled ? (s.fetch_schedule || "—") : "Disabled"
                     );
-                }
-
-                // Populate scheduler tab
-                $("#sched-enabled").prop("checked", !!s.auto_fetch_enabled);
-                $("#sched-schedule").val(s.fetch_schedule   || "Every Hour");
-                $("#sched-custom-cron").val(s.custom_cron   || "");
-                $("#sched-days-back").val(s.sync_days_back  || 1);
-                this._toggleSchedulerUI();
-                this._toggleCronField();
-            },
-        });
-    }
-
-    /* ── Scheduler ────────────────────────────────────────────────────────── */
-    _toggleSchedulerUI() {
-        const on = $("#sched-enabled").is(":checked");
-        const tag = document.getElementById("sched-status-tag");
-        if (on) {
-            tag.textContent = "Enabled";
-            tag.style.cssText += "background:#d1fae5; color:#065f46; border-color:#a7f3d0;";
-        } else {
-            tag.textContent = "Disabled";
-            tag.style.cssText += "background:#fde8e8; color:#842029; border-color:#f5c2c7;";
-        }
-        $("#sched-options").css({ opacity: on ? 1 : 0.45, "pointer-events": on ? "auto" : "none" });
-    }
-
-    _toggleCronField() {
-        $("#sched-cron-field").toggle($("#sched-schedule").val() === "Custom");
-    }
-
-    _saveScheduler() {
-        const enabled  = $("#sched-enabled").is(":checked") ? 1 : 0;
-        const schedule = $("#sched-schedule").val();
-        const cron     = $("#sched-custom-cron").val().trim();
-        const days     = parseInt($("#sched-days-back").val()) || 1;
-
-        if (schedule === "Custom" && !cron) {
-            frappe.msgprint({ title: __("Validation"), indicator: "orange",
-                message: __("Please enter a cron expression.") });
-            return;
-        }
-
-        frappe.call({
-            method: "etimeoffice_biometric.api.save_settings",
-            args: {
-                corporate_id:       this._settings.corporate_id   || "",
-                username:           this._settings.username        || "",
-                api_base_url:       this._settings.api_base_url    || "https://api.etimeoffice.com",
-                auto_fetch_enabled: enabled,
-                fetch_schedule:     schedule,
-                custom_cron:        cron,
-                sync_days_back:     days,
-            },
-            freeze: true,
-            freeze_message: __("Saving schedule…"),
-            callback: (r) => {
-                if (r.message && r.message.success) {
-                    frappe.show_alert({ message: __("Schedule saved!"), indicator: "green" });
-                    this._loadSettings();
                 }
             },
         });
