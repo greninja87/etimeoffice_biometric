@@ -225,15 +225,38 @@ def _parse_punch_datetime(s):
 
 
 def _ensure_datetime(val):
-    """Coerce a string or date to datetime."""
+    """
+    Coerce a string, date, or datetime to a naive datetime object.
+
+    Handles all formats Frappe may store for a Datetime field:
+      - Already a datetime / date object
+      - Space-separated:  '2026-05-07 17:00:20.600365', '2026-05-07 17:00:20', '2026-05-07 17:00'
+      - ISO 8601 T-sep:   '2026-05-07T17:00:20.600365', '2026-05-07T17:00:20', '2026-05-07T17:00'
+      - Date only:        '2026-05-07'
+    """
     if isinstance(val, datetime.datetime):
         return val
     if isinstance(val, datetime.date):
         return datetime.datetime.combine(val, datetime.time.min)
     if isinstance(val, str):
-        for fmt in ("%Y-%m-%d %H:%M:%S.%f", "%Y-%m-%d %H:%M:%S", "%Y-%m-%d %H:%M", "%Y-%m-%d"):
+        for fmt in (
+            "%Y-%m-%dT%H:%M:%S.%f",   # ISO 8601 with microseconds
+            "%Y-%m-%dT%H:%M:%S",      # ISO 8601 without microseconds
+            "%Y-%m-%dT%H:%M",         # ISO 8601 no seconds
+            "%Y-%m-%d %H:%M:%S.%f",   # Frappe space-format with microseconds
+            "%Y-%m-%d %H:%M:%S",      # Frappe space-format
+            "%Y-%m-%d %H:%M",         # Frappe without seconds
+            "%Y-%m-%d",               # date-only fallback
+        ):
             try:
                 return datetime.datetime.strptime(val, fmt)
             except ValueError:
                 continue
+        # Last-resort: Python's built-in ISO parser (handles timezone suffixes too)
+        try:
+            dt = datetime.datetime.fromisoformat(val)
+            # Strip timezone info so we stay naive (consistent with frappe.utils.now_datetime)
+            return dt.replace(tzinfo=None)
+        except (ValueError, AttributeError):
+            pass
     raise ValueError(f"Cannot convert to datetime: {val!r}")

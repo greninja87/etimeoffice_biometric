@@ -34,11 +34,13 @@ def run_scheduled_sync():
         from etimeoffice_biometric.utils.sync import fetch_and_sync
 
         # Determine from_date: use last_sync_time or fall back to sync_days_back
+        import datetime
+        days_back = int(settings.sync_days_back or 1)
+        from_date = None
         if settings.last_sync_time:
-            from_date = settings.last_sync_time
-        else:
-            import datetime
-            days_back = int(settings.sync_days_back or 1)
+            from_date = _safe_to_datetime(settings.last_sync_time)
+        if from_date is None:
+            # Either last_sync_time was empty or unparseable — use days_back
             from_date = now - datetime.timedelta(days=days_back)
 
         to_date = now
@@ -119,3 +121,38 @@ def _check_schedule(settings, now):
             return False
 
     return True
+
+
+# ─── Internal datetime helper ─────────────────────────────────────────────────
+
+def _safe_to_datetime(val):
+    """
+    Safely convert whatever Frappe stores for a Datetime field to a naive
+    datetime object.  Frappe's ORM may return the value as a 'datetime',
+    a space-separated string, or an ISO 8601 string with a 'T' separator
+    (e.g. '2026-05-07T17:00:20.600365').  All variants are handled here.
+    """
+    import datetime as dt
+    if isinstance(val, dt.datetime):
+        return val.replace(tzinfo=None)  # ensure naive
+    if isinstance(val, dt.date):
+        return dt.datetime.combine(val, dt.time.min)
+    if isinstance(val, str):
+        # Normalise: replace T separator, strip timezone suffix
+        normalised = val.replace("T", " ").split("+")[0].split("Z")[0].strip()
+        for fmt in (
+            "%Y-%m-%d %H:%M:%S.%f",
+            "%Y-%m-%d %H:%M:%S",
+            "%Y-%m-%d %H:%M",
+            "%Y-%m-%d",
+        ):
+            try:
+                return dt.datetime.strptime(normalised, fmt)
+            except ValueError:
+                continue
+    frappe.log_error(
+        f"[Biometric] Unexpected last_sync_time value: {val!r} (type={type(val).__name__}). "
+        "Falling back to sync_days_back.",
+        "[Biometric] Datetime Parse Warning",
+    )
+    return None
