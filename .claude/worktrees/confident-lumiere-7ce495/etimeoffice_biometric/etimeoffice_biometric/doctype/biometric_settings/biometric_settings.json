@@ -1,0 +1,146 @@
+{
+ "actions": [],
+ "creation": "2024-01-01 00:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "api_configuration_section",
+  "corporate_id",
+  "col_break1",
+  "username",
+  "password",
+  "api_base_url",
+  "sync_settings_section",
+  "auto_fetch_enabled",
+  "fetch_schedule",
+  "custom_cron",
+  "col_break2",
+  "sync_days_back",
+  "status_section",
+  "last_sync_time",
+  "col_break3",
+  "last_sync_status"
+ ],
+ "fields": [
+  {
+   "fieldname": "api_configuration_section",
+   "fieldtype": "Section Break",
+   "label": "API Configuration"
+  },
+  {
+   "bold": 1,
+   "fieldname": "corporate_id",
+   "fieldtype": "Data",
+   "in_list_view": 0,
+   "label": "Corporate ID",
+   "reqd": 1
+  },
+  {
+   "fieldname": "col_break1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "username",
+   "fieldtype": "Data",
+   "label": "API Username",
+   "reqd": 1
+  },
+  {
+   "fieldname": "password",
+   "fieldtype": "Password",
+   "label": "API Password",
+   "reqd": 1
+  },
+  {
+   "default": "https://api.etimeoffice.com",
+   "fieldname": "api_base_url",
+   "fieldtype": "Data",
+   "label": "API Base URL",
+   "reqd": 1
+  },
+  {
+   "fieldname": "sync_settings_section",
+   "fieldtype": "Section Break",
+   "label": "Scheduler Settings"
+  },
+  {
+   "default": "0",
+   "fieldname": "auto_fetch_enabled",
+   "fieldtype": "Check",
+   "label": "Enable Automatic Fetch"
+  },
+  {
+   "default": "Every Hour",
+   "depends_on": "eval:doc.auto_fetch_enabled==1",
+   "fieldname": "fetch_schedule",
+   "fieldtype": "Select",
+   "label": "Fetch Schedule",
+   "options": "Every Hour\nEvery 2 Hours\nEvery 4 Hours\nEvery 6 Hours\nEvery 12 Hours\nDaily\nCustom"
+  },
+  {
+   "depends_on": "eval:doc.auto_fetch_enabled==1 && doc.fetch_schedule=='Custom'",
+   "description": "Standard cron expression, e.g. 0 */4 * * * for every 4 hours",
+   "fieldname": "custom_cron",
+   "fieldtype": "Data",
+   "label": "Custom Cron Expression"
+  },
+  {
+   "fieldname": "col_break2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "1",
+   "description": "How many days back to fetch on the very first sync run",
+   "fieldname": "sync_days_back",
+   "fieldtype": "Int",
+   "label": "Initial Lookback Days"
+  },
+  {
+   "fieldname": "status_section",
+   "fieldtype": "Section Break",
+   "label": "Sync Status"
+  },
+  {
+   "fieldname": "last_sync_time",
+   "fieldtype": "Datetime",
+   "label": "Last Successful Sync Time",
+   "read_only": 1
+  },
+  {
+   "fieldname": "col_break3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "last_sync_status",
+   "fieldtype": "Data",
+   "label": "Last Sync Status",
+   "read_only": 1
+  }
+ ],
+ "issingle": 1,
+ "links": [],
+ "modified": "2024-01-01 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Etimeoffice Biometric",
+ "name": "Biometric Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 0,
+   "email": 1,
+   "export": 0,
+   "print": 1,
+   "read": 1,
+   "report": 0,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

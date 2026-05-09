@@ -52,6 +52,13 @@ def fetch_and_sync(emp_code="ALL", from_date=None, to_date=None):
     from_date = _ensure_datetime(from_date)
     to_date   = _ensure_datetime(to_date)
 
+    # Always fetch from midnight of the start day.  The API filters by time,
+    # so a partial-day from_date (e.g. last_sync_time = 10 AM) causes it to
+    # omit earlier punches.  When only the later punch is visible, the code
+    # sees a single-punch day and misclassifies it as IN instead of OUT.
+    # Rounding to midnight guarantees we always get the full day's punch set.
+    from_date = from_date.replace(hour=0, minute=0, second=0, microsecond=0)
+
     from_date_str = from_date.strftime(_API_PARAM_FMT)
     to_date_str   = to_date.strftime(_API_PARAM_FMT)
 
