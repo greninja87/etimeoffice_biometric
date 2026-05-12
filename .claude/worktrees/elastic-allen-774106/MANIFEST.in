@@ -1,0 +1,2 @@
+include MANIFEST.in
+recursive-include etimeoffice_biometric *.json *.js *.css *.html *.csv *.txt *.md *.png *.svg

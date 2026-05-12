@@ -1,0 +1,156 @@
+{
+ "actions": [],
+ "autoname": "hash",
+ "creation": "2024-01-01 00:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "sync_time",
+  "employee_filter",
+  "col_break1",
+  "status",
+  "error_message",
+  "dates_section",
+  "from_date",
+  "col_break2",
+  "to_date",
+  "counts_section",
+  "records_fetched",
+  "col_break3",
+  "records_created",
+  "col_break4",
+  "records_skipped",
+  "col_break5",
+  "records_not_found"
+ ],
+ "fields": [
+  {
+   "bold": 1,
+   "fieldname": "sync_time",
+   "fieldtype": "Datetime",
+   "in_list_view": 1,
+   "label": "Sync Time",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "employee_filter",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Employee Filter",
+   "read_only": 1
+  },
+  {
+   "fieldname": "col_break1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "bold": 1,
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Status",
+   "options": "Success\nPartial\nFailed",
+   "read_only": 1
+  },
+  {
+   "fieldname": "error_message",
+   "fieldtype": "Text",
+   "label": "Error Message",
+   "read_only": 1
+  },
+  {
+   "fieldname": "dates_section",
+   "fieldtype": "Section Break",
+   "label": "Date Range Fetched"
+  },
+  {
+   "fieldname": "from_date",
+   "fieldtype": "Datetime",
+   "label": "From Date",
+   "read_only": 1
+  },
+  {
+   "fieldname": "col_break2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "to_date",
+   "fieldtype": "Datetime",
+   "label": "To Date",
+   "read_only": 1
+  },
+  {
+   "fieldname": "counts_section",
+   "fieldtype": "Section Break",
+   "label": "Record Counts"
+  },
+  {
+   "default": "0",
+   "fieldname": "records_fetched",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Records Fetched",
+   "read_only": 1
+  },
+  {
+   "fieldname": "col_break3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "records_created",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Records Created",
+   "read_only": 1
+  },
+  {
+   "fieldname": "col_break4",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "records_skipped",
+   "fieldtype": "Int",
+   "label": "Duplicates Skipped",
+   "read_only": 1
+  },
+  {
+   "fieldname": "col_break5",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "records_not_found",
+   "fieldtype": "Int",
+   "label": "Employees Not Found",
+   "read_only": 1
+  }
+ ],
+ "links": [],
+ "modified": "2024-01-01 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Etimeoffice Biometric",
+ "name": "Biometric Sync Log",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 0
+  }
+ ],
+ "sort_field": "sync_time",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 0
+}

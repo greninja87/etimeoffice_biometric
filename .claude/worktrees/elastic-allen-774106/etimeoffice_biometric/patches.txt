@@ -1,0 +1,2 @@
+# Blank patches file — add patch entries here as needed in future versions.
+# Format: app_name.module.patch_module
