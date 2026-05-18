@@ -142,28 +142,40 @@ def _process_punches(punch_list):
 
         punches_sorted = sorted(punches, key=lambda x: x["dt"])
 
+        # Check if there are already check-ins for the day
+        start_of_day = f"{_date} 00:00:00"
+        end_of_day = f"{_date} 23:59:59"
+
+        existing_checkins = frappe.get_all(
+            "Employee Checkin",
+            filters={
+                "employee": empcode,
+                "time": ["between", [start_of_day, end_of_day]]
+            },
+            limit=1
+        )
+
         # Determine IN / OUT records
         checkins = []
-        if len(punches_sorted) == 1:
-            checkins.append({
-                "employee":  empcode,
-                "time":      punches_sorted[0]["dt"],
-                "log_type":  "IN",
-                "device_id": punches_sorted[0]["mcid"],
-            })
+        if existing_checkins:
+            # If check-ins already exist, we know an IN already exists.
+            # All new punches are OUT.
+            for punch in punches_sorted:
+                checkins.append({
+                    "employee":  empcode,
+                    "time":      punch["dt"],
+                    "log_type":  "OUT",
+                    "device_id": punch["mcid"],
+                })
         else:
-            checkins.append({
-                "employee":  empcode,
-                "time":      punches_sorted[0]["dt"],
-                "log_type":  "IN",
-                "device_id": punches_sorted[0]["mcid"],
-            })
-            checkins.append({
-                "employee":  empcode,
-                "time":      punches_sorted[-1]["dt"],
-                "log_type":  "OUT",
-                "device_id": punches_sorted[-1]["mcid"],
-            })
+            # The first punch is IN, all subsequent punches are OUT
+            for i, punch in enumerate(punches_sorted):
+                checkins.append({
+                    "employee":  empcode,
+                    "time":      punch["dt"],
+                    "log_type":  "IN" if i == 0 else "OUT",
+                    "device_id": punch["mcid"],
+                })
 
         for ci in checkins:
             time_str = ci["time"].strftime("%Y-%m-%d %H:%M:%S")
@@ -179,13 +191,14 @@ def _process_punches(punch_list):
             # differences. Direct SQL with DATE_FORMAT truncated to the second
             # is the most reliable approach and prevents duplicates across
             # separate fetch runs (manual or scheduled).
+            # Log type is ignored so that overlapping fetches don't re-insert
+            # early IN punches as OUT punches.
             already_exists = frappe.db.sql("""
                 SELECT name FROM `tabEmployee Checkin`
                 WHERE employee = %s
                   AND DATE_FORMAT(time, '%%Y-%%m-%%d %%H:%%i:%%s') = %s
-                  AND log_type = %s
                 LIMIT 1
-            """, (ci["employee"], time_str, ci["log_type"]))
+            """, (ci["employee"], time_str))
 
             if already_exists:
                 skipped += 1
@@ -208,6 +221,32 @@ def _process_punches(punch_list):
             doc.insert(ignore_permissions=True)
             inserted_this_batch.add(batch_key)
             created += 1
+
+        # Ensure only the absolute latest OUT punch for this employee on this date has skip_auto_attendance = 0
+        frappe.db.sql("""
+            UPDATE `tabEmployee Checkin`
+            SET skip_auto_attendance = 1
+            WHERE employee = %(employee)s
+              AND log_type = 'OUT'
+              AND time >= %(start_of_day)s
+              AND time <= %(end_of_day)s
+              AND name != (
+                  SELECT latest_name FROM (
+                      SELECT name AS latest_name
+                      FROM `tabEmployee Checkin`
+                      WHERE employee = %(employee)s
+                        AND log_type = 'OUT'
+                        AND time >= %(start_of_day)s
+                        AND time <= %(end_of_day)s
+                      ORDER BY time DESC
+                      LIMIT 1
+                  ) AS subquery
+              )
+        """, {
+            "employee": empcode,
+            "start_of_day": f"{_date} 00:00:00",
+            "end_of_day": f"{_date} 23:59:59"
+        })
 
     return created, skipped, not_found
 
