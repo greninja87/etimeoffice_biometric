@@ -142,28 +142,51 @@ def _process_punches(punch_list):
 
         punches_sorted = sorted(punches, key=lambda x: x["dt"])
 
+        # Check if there are already check-ins for the day
+        start_of_day = f"{_date} 00:00:00"
+        end_of_day = f"{_date} 23:59:59"
+
+        existing_checkins = frappe.get_all(
+            "Employee Checkin",
+            filters={
+                "employee": empcode,
+                "time": ["between", [start_of_day, end_of_day]]
+            },
+            limit=1
+        )
+
         # Determine IN / OUT records
         checkins = []
-        if len(punches_sorted) == 1:
-            checkins.append({
-                "employee":  empcode,
-                "time":      punches_sorted[0]["dt"],
-                "log_type":  "IN",
-                "device_id": punches_sorted[0]["mcid"],
-            })
-        else:
-            checkins.append({
-                "employee":  empcode,
-                "time":      punches_sorted[0]["dt"],
-                "log_type":  "IN",
-                "device_id": punches_sorted[0]["mcid"],
-            })
+        if existing_checkins:
+            # If check-ins already exist, we know an IN already exists.
+            # We just append the last punch as OUT.
             checkins.append({
                 "employee":  empcode,
                 "time":      punches_sorted[-1]["dt"],
                 "log_type":  "OUT",
                 "device_id": punches_sorted[-1]["mcid"],
             })
+        else:
+            if len(punches_sorted) == 1:
+                checkins.append({
+                    "employee":  empcode,
+                    "time":      punches_sorted[0]["dt"],
+                    "log_type":  "IN",
+                    "device_id": punches_sorted[0]["mcid"],
+                })
+            else:
+                checkins.append({
+                    "employee":  empcode,
+                    "time":      punches_sorted[0]["dt"],
+                    "log_type":  "IN",
+                    "device_id": punches_sorted[0]["mcid"],
+                })
+                checkins.append({
+                    "employee":  empcode,
+                    "time":      punches_sorted[-1]["dt"],
+                    "log_type":  "OUT",
+                    "device_id": punches_sorted[-1]["mcid"],
+                })
 
         for ci in checkins:
             time_str = ci["time"].strftime("%Y-%m-%d %H:%M:%S")
